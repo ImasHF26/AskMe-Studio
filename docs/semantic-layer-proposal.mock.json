@@ -1,0 +1,66 @@
+{
+  "generateRequest": {
+    "useAI": true,
+    "sampleSize": 100,
+    "overwriteExisting": true
+  },
+  "proposal": {
+    "datasourceId": "ds_demo",
+    "confidence": 0.82,
+    "tables": [
+      {
+        "technicalName": "public.orders",
+        "businessName": "Orders",
+        "description": "Orders fact table inferred from datasource metadata.",
+        "tableType": "fact",
+        "confidence": 0.84,
+        "source": "heuristic"
+      }
+    ],
+    "columns": [
+      {
+        "tableTechnicalName": "public.orders",
+        "technicalName": "id",
+        "businessName": "Id",
+        "semanticType": "identifier",
+        "dataType": "integer",
+        "isNullable": false,
+        "confidence": 0.96,
+        "source": "heuristic",
+        "warnings": []
+      },
+      {
+        "tableTechnicalName": "public.orders",
+        "technicalName": "amount",
+        "businessName": "Amount",
+        "semanticType": "measure",
+        "dataType": "numeric",
+        "isNullable": true,
+        "confidence": 0.89,
+        "source": "heuristic",
+        "warnings": []
+      }
+    ],
+    "kpis": [
+      {
+        "name": "Total Sales",
+        "sqlFormula": "SUM(amount)",
+        "description": "Total amount calculated from public.orders.",
+        "formatting": "currency",
+        "confidence": 0.82,
+        "source": "heuristic"
+      }
+    ],
+    "synonyms": [
+      {
+        "term": "revenue",
+        "mappedValue": "amount",
+        "confidence": 0.78,
+        "source": "heuristic"
+      }
+    ],
+    "warnings": [
+      "Relationship customer_id detected by naming convention but no FK constraint exists."
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "askme-studio",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.12.3",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @askme/frontend --filter @askme/api-gateway --filter @askme/auth-service --filter @askme/datasource-service --filter @askme/metadata-service --filter @askme/semantic-layer-service --filter @askme/ai-copilot-service --filter @askme/query-executor-service --filter @askme/dashboard-service --filter @askme/analytics-service --filter @askme/narrative-service run dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run test",
+    "seed:postgres:test": "PGPASSWORD=askme psql -h localhost -p 15432 -U askme -d askme -v ON_ERROR_STOP=1 -f scripts/seed-postgres-test.sql"
+  }
+}

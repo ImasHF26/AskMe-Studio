@@ -1,0 +1,9 @@
+{
+  "name": "@askme/backend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "echo 'Use workspace root dev or run individual service dev scripts'",
+    "build": "echo 'Use workspace root build'"
+  }
+}

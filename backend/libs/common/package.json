@@ -1,0 +1,15 @@
+{
+  "name": "@askme/common",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "echo 'lint common not configured yet'",
+    "test": "echo 'tests common not configured yet'"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}

@@ -1,0 +1,28 @@
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+
+# backend
+backend/**/node_modules/
+backend/**/dist/
+
+# docker
+data/
+
+# Exclusions demandées par l'utilisateur
+PLAN.md
+AskMe_Studio_Architecture_Logicielle.docx
+rapport-pfe-askmestudio/
+rapport-pfe-askmestudio

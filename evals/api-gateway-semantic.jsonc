@@ -1,0 +1,977 @@
+[
+  {
+    "name": "metric_revenue",
+    "question": "What is the total revenue?",
+    "expectedStatus": "ok",
+    "expectedSqlIncludes": ["SUM", "total_amount", "FROM", "orders", "LIMIT 1"],
+    "expectedEntities": ["orders", "total_amount"]
+  },
+  {
+    "name": "monthly_revenue",
+    "question": "Show monthly revenue trend",
+    "expectedStatus": "ok",
+    "expectedSqlIncludes": ["date_trunc", "created_at", "LIMIT 24"],
+    "expectedEntities": ["orders", "total_amount", "created_at"]
+  },
+  {
+    "name": "distribution_by_status",
+    "question": "Revenue by status",
+    "expectedStatus": "ok",
+    "expectedSqlIncludes": ["status", "GROUP BY", "LIMIT 20"],
+    "expectedEntities": ["orders", "total_amount", "status"]
+  },
+  {
+    "name": "list_customer_first_and_last_names_fr",
+    "question": "affiche le nom et prénom des clients",
+    "expectedStatus": "ok",
+    "expectedSqlIncludes": ["SELECT", "first_name", "last_name", "FROM", "customers", "LIMIT 100"],
+    "expectedEntities": ["customers", "first_name", "last_name"]
+  },
+  {
+    "name": "revenue_filtered_by_category_fr",
+    "question": "quel est le chiffre d'affaire des ventes qui concernent la catégorie Maison",
+    "expectedStatus": "ok",
+    "expectedSqlIncludes": ["SUM", "total_amount", "FROM", "orders", "category", "ILIKE", "Maison", "LIMIT 1"],
+    "expectedEntities": ["orders", "total_amount", "category"]
+  },
+  {
+    "name": "revenue_by_clients_joined_dimension",
+    "question": "Répartition du montant des ventes par clients",
+    "expectedStatus": "ok",
+    "expectedSqlIncludes": ["JOIN", "customers", "customer_id", "customer_name", "GROUP BY", "ORDER BY", "LIMIT 20"],
+    "expectedEntities": ["orders", "customers", "total_amount", "customer_id", "customer_name"]
+  },
+  {
+    "name": "revenue_by_products_joined_dimension",
+    "question": "Répartition du montant des ventes par produits",
+    "expectedStatus": "ok",
+    "expectedSqlIncludes": ["JOIN", "products", "product_id", "product_name", "GROUP BY", "ORDER BY", "LIMIT 20"],
+    "expectedEntities": ["orders", "products", "total_amount", "product_id", "product_name"]
+  },
+  {
+    "name": "out_of_scope_weather_refused_before_sql",
+    "question": "Quelle est la météo de demain ?",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["hors du périmètre", "ventes", "clients", "produits"]
+  },
+  {
+    "name": "out_of_scope_president_refused_before_sql",
+    "question": "Qui est le président des États-Unis ?",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["hors du périmètre", "Data Warehouse"]
+  },
+  {
+    "name": "out_of_scope_news_refused_before_sql",
+    "question": "Donne-moi les actualités du jour.",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["hors du périmètre", "données métier"]
+  },
+  {
+    "name": "out_of_scope_movie_refused_before_sql",
+    "question": "Quel est le meilleur film cette année ?",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["hors du périmètre", "AskMe Studio"]
+  },
+  {
+    "name": "unsupported_bitcoin_prediction_refused_before_sql",
+    "question": "Prédis le cours du Bitcoin.",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["analyse prédictive", "données métier"]
+  },
+  {
+    "name": "destructive_delete_orders_blocked_before_sql",
+    "question": "Supprime toutes les commandes.",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["bloquée", "action destructive"]
+  },
+  {
+    "name": "insufficient_hr_salary_context_refused_before_sql",
+    "question": "Quel est le salaire moyen des employés ?",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["aucune donnée RH", "ventes", "clients", "produits"]
+  },
+  {
+    "name": "generic_joke_refused_by_hybrid_scope",
+    "question": "Raconte-moi une blague.",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["hors du périmètre", "Data Warehouse", "ventes"]
+  },
+  {
+    "name": "generic_explanation_refused_by_hybrid_scope",
+    "question": "Explique-moi la photosynthèse.",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["Data Warehouse", "ventes"]
+  },
+  {
+    "name": "generic_writing_refused_by_hybrid_scope",
+    "question": "Rédige un email professionnel pour mon professeur.",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": [],
+    "expectedReasonIncludes": ["hors du périmètre", "Data Warehouse", "AskMe Studio"]
+  },
+  {
+    "name": "business_intent_top_sold_products_uses_quantity",
+    "businessIntentOnly": true,
+    "question": "Quels sont les produits les plus vendus ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_produit", "nom_produit", "SUM", "quantite", "sk_produit", "GROUP BY", "ORDER BY", "DESC", "LIMIT 10"],
+    "expectedSqlExcludes": ["cout_achat_total", "marge_brute", "montant_total"],
+    "expectedMetricAlias": "quantite_vendue",
+    "expectedMetricColumn": "quantite",
+    "expectedDimensionColumn": "nom_produit"
+  },
+  {
+    "name": "business_intent_top_clients_uses_revenue",
+    "businessIntentOnly": true,
+    "question": "Quels clients génèrent le plus de chiffre d'affaires ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_client", "nom_client", "prenom_client", "SUM", "montant_total", "sk_client", "GROUP BY", "ORDER BY", "DESC", "LIMIT 10"],
+    "expectedMetricAlias": "chiffre_affaires",
+    "expectedMetricColumn": "montant_total",
+    "expectedDimensionColumn": "nom_client"
+  },
+  {
+    "name": "business_intent_best_client_returns_name_and_first_name",
+    "businessIntentOnly": true,
+    "question": "Quel est le client ayant le plus grand chiffre d’affaires ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_client", "nom_client", "prenom_client", "SUM", "montant_total", "sk_client", "GROUP BY", "ORDER BY", "DESC", "LIMIT 1"],
+    "expectedMetricAlias": "chiffre_affaires",
+    "expectedMetricColumn": "montant_total",
+    "expectedDimensionColumn": "nom_client"
+  },
+  {
+    "name": "conversation_memory_answers_client_name_from_previous_preview",
+    "conversationMemoryOnly": true,
+    "previousQuestion": "Quel est le client ayant le plus grand chiffre d’affaires ?",
+    "question": "Quel est son nom ?",
+    "expectedAnswerIncludes": ["Le client concerné est", "Alami", "Sara"]
+  },
+  {
+    "name": "business_intent_lowest_regions_use_quantity_asc",
+    "businessIntentOnly": true,
+    "question": "Quelles régions vendent le moins ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_geographie", "region", "SUM", "quantite", "sk_geographie", "GROUP BY", "ORDER BY", "ASC", "LIMIT 10"],
+    "expectedMetricAlias": "quantite_vendue",
+    "expectedMetricColumn": "quantite",
+    "expectedDimensionColumn": "region"
+  },
+  {
+    "name": "no_datasource_refuses",
+    "question": "What is the total revenue?",
+    "datasourceId": null,
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": []
+  },
+  {
+    "name": "empty_semantic_layer_refuses",
+    "question": "What is the total revenue?",
+    "semanticLayer": "empty",
+    "expectedStatus": "cannot_answer",
+    "expectedSqlIncludes": []
+  },
+  {
+    "name": "unknown_table_rejected",
+    "validatorOnly": true,
+    "sql": "SELECT SUM(\"amount\") AS total FROM \"payments\" LIMIT 10;",
+    "expectedStatus": "validation_error",
+    "expectedReasonIncludes": "unknown table"
+  },
+  {
+    "name": "semantic_retrieval_finds_timestamp_column",
+    "retrievalOnly": true,
+    "question": "Which timestamp field exists for orders?",
+    "expectedHit": "created_at"
+  },
+  {
+    "name": "semantic_layer_generation_french_labels",
+    "generationLanguageOnly": true,
+    "semanticLanguage": "fr",
+    "expectedTableBusinessName": "Commandes",
+    "expectedKpiNameIncludes": "Chiffre d'affaires",
+    "expectedTechnicalName": "orders"
+  },
+  {
+    "name": "semantic_layer_generation_campaign_business_description",
+    "generationLanguageOnly": true,
+    "semanticLanguage": "fr",
+    "metadata": [
+      {
+        "name": "dim_campagne",
+        "tableType": "table",
+        "rowCount": 24,
+        "sampleRows": [],
+        "warnings": [],
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": true,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 24, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+          },
+          {
+            "name": "nom_campagne",
+            "dataType": "varchar",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 24, "distinctRatio": 1, "topValues": [], "sampleValues": ["Soldes ete", "Relance fidelite"] }
+          }
+        ]
+      }
+    ],
+    "expectedTechnicalName": "dim_campagne",
+    "expectedTableBusinessName": "Dim Campagne",
+    "expectedKpiNameIncludes": "Nombre",
+    "expectedTableDescriptionIncludes": ["Referentiel metier", "campagnes", "Champ libelle principal", "Nom Campagne (nom_campagne)"],
+    "expectedTableDescriptionExcludes": ["table dimension infer", "metadonnees de la source", "datasource metadata"]
+  },
+  {
+    "name": "semantic_layer_generation_excludes_fk_measures_and_labels_dimensions",
+    "generationLanguageOnly": true,
+    "semanticLanguage": "fr",
+    "metadata": [
+      {
+        "name": "fact_orders",
+        "tableType": "table",
+        "rowCount": 1200,
+        "sampleRows": [],
+        "warnings": [],
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": true,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 1200, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+          },
+          {
+            "name": "customer_id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": true,
+            "references": { "table": "dim_customers", "column": "id" },
+            "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 0.25, "topValues": [], "sampleValues": [101, 102] }
+          },
+          {
+            "name": "product_id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": true,
+            "references": { "table": "dim_products", "column": "id" },
+            "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 0.067, "topValues": [], "sampleValues": [11, 12] }
+          },
+          {
+            "name": "total_amount",
+            "dataType": "numeric",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 900, "distinctRatio": 0.75, "topValues": [], "sampleValues": [125.5, 240.0] }
+          }
+        ]
+      },
+      {
+        "name": "dim_customers",
+        "tableType": "table",
+        "rowCount": 300,
+        "sampleRows": [],
+        "warnings": [],
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": true,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+          },
+          {
+            "name": "customer_name",
+            "dataType": "varchar",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": ["Acme", "Globex"] }
+          },
+          {
+            "name": "region",
+            "dataType": "varchar",
+            "isNullable": true,
+            "isPrimaryKey": false,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0.05, "distinctCount": 8, "distinctRatio": 0.027, "topValues": [], "sampleValues": ["Nord", "Sud"] }
+          }
+        ]
+      }
+    ],
+    "expectedTechnicalName": "fact_orders",
+    "expectedTableBusinessName": "Fact Commandes",
+    "expectedKpiNameIncludes": "Nombre",
+    "expectedKpiNameExcludes": ["customer_id", "product_id"],
+    "expectedColumnSemanticTypes": [
+      { "name": "customer_id", "semanticType": "identifier" },
+      { "name": "product_id", "semanticType": "identifier" },
+      { "name": "customer_name", "semanticType": "dimension" }
+    ],
+    "expectedTableDescriptionIncludes": ["Cles de jointure principales", "customer_id", "product_id"]
+  },
+  {
+    "name": "semantic_relationships_are_persisted",
+    "relationshipPersistenceOnly": true,
+    "semanticLanguage": "fr",
+    "metadata": [
+      {
+        "name": "fact_orders",
+        "tableType": "table",
+        "rowCount": 1200,
+        "sampleRows": [],
+        "warnings": [],
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": true,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 1200, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+          },
+          {
+            "name": "customer_id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": true,
+            "references": { "table": "dim_customers", "column": "id" },
+            "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 0.25, "topValues": [], "sampleValues": [101, 102] }
+          },
+          {
+            "name": "product_id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": true,
+            "references": { "table": "dim_products", "column": "id" },
+            "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 0.067, "topValues": [], "sampleValues": [11, 12] }
+          }
+        ]
+      },
+      {
+        "name": "dim_customers",
+        "tableType": "table",
+        "rowCount": 300,
+        "sampleRows": [],
+        "warnings": [],
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": true,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+          },
+          {
+            "name": "customer_name",
+            "dataType": "varchar",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": ["Acme", "Globex"] }
+          }
+        ]
+      },
+      {
+        "name": "dim_products",
+        "tableType": "table",
+        "rowCount": 80,
+        "sampleRows": [],
+        "warnings": [],
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "integer",
+            "isNullable": false,
+            "isPrimaryKey": true,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+          },
+          {
+            "name": "product_name",
+            "dataType": "varchar",
+            "isNullable": false,
+            "isPrimaryKey": false,
+            "isForeignKey": false,
+            "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 1, "topValues": [], "sampleValues": ["Widget", "Gizmo"] }
+          }
+        ]
+      }
+    ],
+    "expectedRelationshipIncludes": ["fact_orders.customer_id->dim_customers.id", "fact_orders.product_id->dim_products.id"]
+  },
+  {
+    "name": "fallback_never_fabricates_rows",
+    "fallbackOnly": true,
+    "question": "Show monthly revenue trend",
+    "expectedStatus": "execution_error",
+    "expectedRows": 0
+  },
+  {
+    "name": "business_intent_revenue_by_store",
+    "businessIntentOnly": true,
+    "question": "Quel est le chiffre d'affaires par magasin ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_magasin", "nom_magasin", "SUM", "montant_total", "sk_magasin", "GROUP BY", "ORDER BY", "DESC", "LIMIT 20"],
+    "expectedSqlExcludes": ["quantite", "marge_brute"],
+    "expectedMetricAlias": "chiffre_affaires",
+    "expectedMetricColumn": "montant_total",
+    "expectedDimensionColumn": "nom_magasin"
+  },
+  {
+    "name": "business_intent_best_employee_by_revenue",
+    "businessIntentOnly": true,
+    "question": "Quel employé génère le plus de chiffre d'affaires ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_employe", "nom_employe", "SUM", "montant_total", "sk_employe", "GROUP BY", "ORDER BY", "DESC", "LIMIT 1"],
+    "expectedMetricAlias": "chiffre_affaires",
+    "expectedMetricColumn": "montant_total",
+    "expectedDimensionColumn": "nom_employe"
+  },
+  {
+    "name": "business_intent_margin_by_product_category",
+    "businessIntentOnly": true,
+    "question": "Quelle est la marge brute par catégorie de produit ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_produit", "categorie", "SUM", "marge_brute", "sk_produit", "GROUP BY", "ORDER BY", "DESC", "LIMIT 10"],
+    "expectedSqlExcludes": ["quantite", "montant_remise"],
+    "expectedMetricAlias": "marge_totale",
+    "expectedMetricColumn": "marge_brute",
+    "expectedDimensionColumn": "categorie"
+  },
+  {
+    "name": "business_intent_revenue_by_payment_method",
+    "businessIntentOnly": true,
+    "question": "Quelle est la répartition des ventes par moyen de paiement ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_moyen_paiement", "moyen_paiement", "SUM", "montant_total", "sk_moyen_paiement", "GROUP BY", "ORDER BY", "DESC", "LIMIT 20"],
+    "expectedMetricAlias": "chiffre_affaires",
+    "expectedMetricColumn": "montant_total",
+    "expectedDimensionColumn": "moyen_paiement"
+  },
+  {
+    "name": "business_intent_monthly_revenue_trend_dw",
+    "businessIntentOnly": true,
+    "question": "Quelle est l'évolution du chiffre d'affaires par mois ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_temps", "nom_mois", "annee", "SUM", "montant_total", "sk_temps", "GROUP BY", "ORDER BY", "LIMIT 24"],
+    "expectedMetricAlias": "chiffre_affaires",
+    "expectedMetricColumn": "montant_total",
+    "expectedDimensionColumn": "nom_mois"
+  },
+  {
+    "name": "business_intent_promotion_effectiveness_uses_quantity",
+    "businessIntentOnly": true,
+    "question": "Quel est l'effet des promotions sur le volume des ventes ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_promotion", "nom_promotion", "SUM", "quantite", "sk_promotion", "GROUP BY", "ORDER BY", "DESC", "LIMIT 10"],
+    "expectedSqlExcludes": ["montant_total", "marge_brute"],
+    "expectedMetricAlias": "quantite_vendue",
+    "expectedMetricColumn": "quantite",
+    "expectedDimensionColumn": "nom_promotion"
+  },
+  {
+    "name": "business_intent_online_vs_physical_store_revenue",
+    "businessIntentOnly": true,
+    "question": "Quelle est la répartition du chiffre d'affaires entre magasins physiques et en ligne ?",
+    "expectedSqlIncludes": ["dw", "f_ventes", "dim_magasin", "type_magasin", "SUM", "montant_total", "sk_magasin", "GROUP BY", "ORDER BY", "DESC", "LIMIT 20"],
+    "expectedMetricAlias": "chiffre_affaires",
+    "expectedMetricColumn": "montant_total",
+    "expectedDimensionColumn": "type_magasin"
+  },
+  {
+    "name": "conversation_memory_answers_employee_name_from_previous_preview",
+    "conversationMemoryOnly": true,
+    "previousQuestion": "Quel employé génère le plus de chiffre d'affaires ?",
+    "question": "Dans quel département travaille-t-il ?",
+    "expectedAnswerIncludes": ["L'employé concerné travaille dans le département", "Ventes"]
+  },
+  {
+    "name": "unknown_table_rejected_dw_schema",
+    "validatorOnly": true,
+    "sql": "SELECT SUM(\"montant_total\") AS total FROM \"dw\".\"ventes\" LIMIT 10;",
+    "expectedStatus": "validation_error",
+    "expectedReasonIncludes": "unknown table"
+  },
+  {
+    "name": "unknown_column_rejected_dw_schema",
+    "validatorOnly": true,
+    "sql": "SELECT SUM(\"chiffre_affaires_total\") FROM \"dw\".\"f_ventes\" LIMIT 10;",
+    "expectedStatus": "validation_error",
+    "expectedReasonIncludes": "unknown column"
+  },
+  {
+    "name": "semantic_relationships_are_persisted_dw_store_geography",
+    "relationshipPersistenceOnly": true,
+    "semanticLanguage": "fr",
+    "expectedRelationshipIncludes": [
+      "f_ventes.sk_produit->dim_produit.sk_produit",
+      "f_ventes.sk_client->dim_client.sk_client",
+      "f_ventes.sk_geographie->dim_geographie.sk_geographie",
+      "f_ventes.sk_magasin->dim_magasin.sk_magasin",
+      "f_ventes.sk_employe->dim_employe.sk_employe",
+      "f_ventes.sk_promotion->dim_promotion.sk_promotion",
+      "f_ventes.sk_moyen_paiement->dim_moyen_paiement.sk_moyen_paiement",
+      "f_ventes.sk_temps->dim_temps.sk_temps",
+      "dim_magasin.sk_geographie->dim_geographie.sk_geographie"
+    ]
+  },
+  {
+    "name": "semantic_retrieval_finds_margin_column",
+    "retrievalOnly": true,
+    "question": "Quel champ mesure la marge brute d'une vente ?",
+    "expectedHit": "marge_brute"
+  },
+  {
+    "name": "semantic_retrieval_finds_loyalty_column",
+    "retrievalOnly": true,
+    "question": "Quel champ indique si un client est fidèle ?",
+    "expectedHit": "membre_fidelite"
+  }
+]
+
+
+// [
+//   {
+//     "name": "metric_revenue",
+//     "question": "What is the total revenue?",
+//     "expectedStatus": "ok",
+//     "expectedSqlIncludes": ["SUM", "total_amount", "FROM", "orders", "LIMIT 1"],
+//     "expectedEntities": ["orders", "total_amount"]
+//   },
+//   {
+//     "name": "monthly_revenue",
+//     "question": "Show monthly revenue trend",
+//     "expectedStatus": "ok",
+//     "expectedSqlIncludes": ["date_trunc", "created_at", "LIMIT 24"],
+//     "expectedEntities": ["orders", "total_amount", "created_at"]
+//   },
+//   {
+//     "name": "distribution_by_status",
+//     "question": "Revenue by status",
+//     "expectedStatus": "ok",
+//     "expectedSqlIncludes": ["status", "GROUP BY", "LIMIT 20"],
+//     "expectedEntities": ["orders", "total_amount", "status"]
+//   },
+//   {
+//     "name": "list_customer_first_and_last_names_fr",
+//     "question": "affiche le nom et prénom des clients",
+//     "expectedStatus": "ok",
+//     "expectedSqlIncludes": ["SELECT", "first_name", "last_name", "FROM", "customers", "LIMIT 100"],
+//     "expectedEntities": ["customers", "first_name", "last_name"]
+//   },
+//   {
+//     "name": "revenue_filtered_by_category_fr",
+//     "question": "quel est le chiffre d'affaire des ventes qui concernent la catégorie Maison",
+//     "expectedStatus": "ok",
+//     "expectedSqlIncludes": ["SUM", "total_amount", "FROM", "orders", "category", "ILIKE", "Maison", "LIMIT 1"],
+//     "expectedEntities": ["orders", "total_amount", "category"]
+//   },
+//   {
+//     "name": "revenue_by_clients_joined_dimension",
+//     "question": "Répartition du montant des ventes par clients",
+//     "expectedStatus": "ok",
+//     "expectedSqlIncludes": ["JOIN", "customers", "customer_id", "customer_name", "GROUP BY", "ORDER BY", "LIMIT 20"],
+//     "expectedEntities": ["orders", "customers", "total_amount", "customer_id", "customer_name"]
+//   },
+//   {
+//     "name": "revenue_by_products_joined_dimension",
+//     "question": "Répartition du montant des ventes par produits",
+//     "expectedStatus": "ok",
+//     "expectedSqlIncludes": ["JOIN", "products", "product_id", "product_name", "GROUP BY", "ORDER BY", "LIMIT 20"],
+//     "expectedEntities": ["orders", "products", "total_amount", "product_id", "product_name"]
+//   },
+//   {
+//     "name": "out_of_scope_weather_refused_before_sql",
+//     "question": "Quelle est la météo de demain ?",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["hors du périmètre", "ventes", "clients", "produits"]
+//   },
+//   {
+//     "name": "out_of_scope_president_refused_before_sql",
+//     "question": "Qui est le président des États-Unis ?",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["hors du périmètre", "Data Warehouse"]
+//   },
+//   {
+//     "name": "out_of_scope_news_refused_before_sql",
+//     "question": "Donne-moi les actualités du jour.",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["hors du périmètre", "données métier"]
+//   },
+//   {
+//     "name": "out_of_scope_movie_refused_before_sql",
+//     "question": "Quel est le meilleur film cette année ?",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["hors du périmètre", "AskMe Studio"]
+//   },
+//   {
+//     "name": "unsupported_bitcoin_prediction_refused_before_sql",
+//     "question": "Prédis le cours du Bitcoin.",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["analyse prédictive", "données métier"]
+//   },
+//   {
+//     "name": "destructive_delete_orders_blocked_before_sql",
+//     "question": "Supprime toutes les commandes.",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["bloquée", "action destructive"]
+//   },
+//   {
+//     "name": "insufficient_hr_salary_context_refused_before_sql",
+//     "question": "Quel est le salaire moyen des employés ?",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["aucune donnée RH", "ventes", "clients", "produits"]
+//   },
+//   {
+//     "name": "generic_joke_refused_by_hybrid_scope",
+//     "question": "Raconte-moi une blague.",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["hors du périmètre", "Data Warehouse", "ventes"]
+//   },
+//   {
+//     "name": "generic_explanation_refused_by_hybrid_scope",
+//     "question": "Explique-moi la photosynthèse.",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["Data Warehouse", "ventes"]
+//   },
+//   {
+//     "name": "generic_writing_refused_by_hybrid_scope",
+//     "question": "Rédige un email professionnel pour mon professeur.",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": [],
+//     "expectedReasonIncludes": ["hors du périmètre", "Data Warehouse", "AskMe Studio"]
+//   },
+//   {
+//     "name": "business_intent_top_sold_products_uses_quantity",
+//     "businessIntentOnly": true,
+//     "question": "Quels sont les produits les plus vendus ?",
+//     "expectedSqlIncludes": ["dw", "f_ventes", "dim_produit", "nom_produit", "SUM", "quantite", "sk_produit", "GROUP BY", "ORDER BY", "DESC", "LIMIT 10"],
+//     "expectedSqlExcludes": ["cout_achat_total", "marge_brute", "montant_total"],
+//     "expectedMetricAlias": "quantite_vendue",
+//     "expectedMetricColumn": "quantite",
+//     "expectedDimensionColumn": "nom_produit"
+//   },
+//   {
+//     "name": "business_intent_top_clients_uses_revenue",
+//     "businessIntentOnly": true,
+//     "question": "Quels clients génèrent le plus de chiffre d'affaires ?",
+//     "expectedSqlIncludes": ["dw", "f_ventes", "dim_client", "nom_client", "prenom_client", "SUM", "montant_total", "sk_client", "GROUP BY", "ORDER BY", "DESC", "LIMIT 10"],
+//     "expectedMetricAlias": "chiffre_affaires",
+//     "expectedMetricColumn": "montant_total",
+//     "expectedDimensionColumn": "nom_client"
+//   },
+//   {
+//     "name": "business_intent_best_client_returns_name_and_first_name",
+//     "businessIntentOnly": true,
+//     "question": "Quel est le client ayant le plus grand chiffre d’affaires ?",
+//     "expectedSqlIncludes": ["dw", "f_ventes", "dim_client", "nom_client", "prenom_client", "SUM", "montant_total", "sk_client", "GROUP BY", "ORDER BY", "DESC", "LIMIT 1"],
+//     "expectedMetricAlias": "chiffre_affaires",
+//     "expectedMetricColumn": "montant_total",
+//     "expectedDimensionColumn": "nom_client"
+//   },
+//   {
+//     "name": "conversation_memory_answers_client_name_from_previous_preview",
+//     "conversationMemoryOnly": true,
+//     "previousQuestion": "Quel est le client ayant le plus grand chiffre d’affaires ?",
+//     "question": "Quel est son nom ?",
+//     "expectedAnswerIncludes": ["Le client concerné est", "Alami", "Sara"]
+//   },
+//   {
+//     "name": "business_intent_lowest_regions_use_quantity_asc",
+//     "businessIntentOnly": true,
+//     "question": "Quelles régions vendent le moins ?",
+//     "expectedSqlIncludes": ["dw", "f_ventes", "dim_geographie", "region", "SUM", "quantite", "sk_geographie", "GROUP BY", "ORDER BY", "ASC", "LIMIT 10"],
+//     "expectedMetricAlias": "quantite_vendue",
+//     "expectedMetricColumn": "quantite",
+//     "expectedDimensionColumn": "region"
+//   },
+//   {
+//     "name": "no_datasource_refuses",
+//     "question": "What is the total revenue?",
+//     "datasourceId": null,
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": []
+//   },
+//   {
+//     "name": "empty_semantic_layer_refuses",
+//     "question": "What is the total revenue?",
+//     "semanticLayer": "empty",
+//     "expectedStatus": "cannot_answer",
+//     "expectedSqlIncludes": []
+//   },
+//   {
+//     "name": "unknown_table_rejected",
+//     "validatorOnly": true,
+//     "sql": "SELECT SUM(\"amount\") AS total FROM \"payments\" LIMIT 10;",
+//     "expectedStatus": "validation_error",
+//     "expectedReasonIncludes": "unknown table"
+//   },
+//   {
+//     "name": "semantic_retrieval_finds_timestamp_column",
+//     "retrievalOnly": true,
+//     "question": "Which timestamp field exists for orders?",
+//     "expectedHit": "created_at"
+//   },
+//   {
+//     "name": "semantic_layer_generation_french_labels",
+//     "generationLanguageOnly": true,
+//     "semanticLanguage": "fr",
+//     "expectedTableBusinessName": "Commandes",
+//     "expectedKpiNameIncludes": "Chiffre d'affaires",
+//     "expectedTechnicalName": "orders"
+//   },
+//   {
+//     "name": "semantic_layer_generation_campaign_business_description",
+//     "generationLanguageOnly": true,
+//     "semanticLanguage": "fr",
+//     "metadata": [
+//       {
+//         "name": "dim_campagne",
+//         "tableType": "table",
+//         "rowCount": 24,
+//         "sampleRows": [],
+//         "warnings": [],
+//         "columns": [
+//           {
+//             "name": "id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": true,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 24, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+//           },
+//           {
+//             "name": "nom_campagne",
+//             "dataType": "varchar",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 24, "distinctRatio": 1, "topValues": [], "sampleValues": ["Soldes ete", "Relance fidelite"] }
+//           }
+//         ]
+//       }
+//     ],
+//     "expectedTechnicalName": "dim_campagne",
+//     "expectedTableBusinessName": "Dim Campagne",
+//     "expectedKpiNameIncludes": "Nombre",
+//     "expectedTableDescriptionIncludes": ["Referentiel metier", "campagnes", "Champ libelle principal", "Nom Campagne (nom_campagne)"],
+//     "expectedTableDescriptionExcludes": ["table dimension infer", "metadonnees de la source", "datasource metadata"]
+//   },
+//   {
+//     "name": "semantic_layer_generation_excludes_fk_measures_and_labels_dimensions",
+//     "generationLanguageOnly": true,
+//     "semanticLanguage": "fr",
+//     "metadata": [
+//       {
+//         "name": "fact_orders",
+//         "tableType": "table",
+//         "rowCount": 1200,
+//         "sampleRows": [],
+//         "warnings": [],
+//         "columns": [
+//           {
+//             "name": "id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": true,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 1200, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+//           },
+//           {
+//             "name": "customer_id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": true,
+//             "references": { "table": "dim_customers", "column": "id" },
+//             "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 0.25, "topValues": [], "sampleValues": [101, 102] }
+//           },
+//           {
+//             "name": "product_id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": true,
+//             "references": { "table": "dim_products", "column": "id" },
+//             "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 0.067, "topValues": [], "sampleValues": [11, 12] }
+//           },
+//           {
+//             "name": "total_amount",
+//             "dataType": "numeric",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 900, "distinctRatio": 0.75, "topValues": [], "sampleValues": [125.5, 240.0] }
+//           }
+//         ]
+//       },
+//       {
+//         "name": "dim_customers",
+//         "tableType": "table",
+//         "rowCount": 300,
+//         "sampleRows": [],
+//         "warnings": [],
+//         "columns": [
+//           {
+//             "name": "id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": true,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+//           },
+//           {
+//             "name": "customer_name",
+//             "dataType": "varchar",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": ["Acme", "Globex"] }
+//           },
+//           {
+//             "name": "region",
+//             "dataType": "varchar",
+//             "isNullable": true,
+//             "isPrimaryKey": false,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0.05, "distinctCount": 8, "distinctRatio": 0.027, "topValues": [], "sampleValues": ["Nord", "Sud"] }
+//           }
+//         ]
+//       }
+//     ],
+//     "expectedTechnicalName": "fact_orders",
+//     "expectedTableBusinessName": "Fact Commandes",
+//     "expectedKpiNameIncludes": "Nombre",
+//     "expectedKpiNameExcludes": ["customer_id", "product_id"],
+//     "expectedColumnSemanticTypes": [
+//       { "name": "customer_id", "semanticType": "identifier" },
+//       { "name": "product_id", "semanticType": "identifier" },
+//       { "name": "customer_name", "semanticType": "dimension" }
+//     ],
+//     "expectedTableDescriptionIncludes": ["Cles de jointure principales", "customer_id", "product_id"]
+//   },
+//   {
+//     "name": "semantic_relationships_are_persisted",
+//     "relationshipPersistenceOnly": true,
+//     "semanticLanguage": "fr",
+//     "metadata": [
+//       {
+//         "name": "fact_orders",
+//         "tableType": "table",
+//         "rowCount": 1200,
+//         "sampleRows": [],
+//         "warnings": [],
+//         "columns": [
+//           {
+//             "name": "id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": true,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 1200, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+//           },
+//           {
+//             "name": "customer_id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": true,
+//             "references": { "table": "dim_customers", "column": "id" },
+//             "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 0.25, "topValues": [], "sampleValues": [101, 102] }
+//           },
+//           {
+//             "name": "product_id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": true,
+//             "references": { "table": "dim_products", "column": "id" },
+//             "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 0.067, "topValues": [], "sampleValues": [11, 12] }
+//           }
+//         ]
+//       },
+//       {
+//         "name": "dim_customers",
+//         "tableType": "table",
+//         "rowCount": 300,
+//         "sampleRows": [],
+//         "warnings": [],
+//         "columns": [
+//           {
+//             "name": "id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": true,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+//           },
+//           {
+//             "name": "customer_name",
+//             "dataType": "varchar",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 300, "distinctRatio": 1, "topValues": [], "sampleValues": ["Acme", "Globex"] }
+//           }
+//         ]
+//       },
+//       {
+//         "name": "dim_products",
+//         "tableType": "table",
+//         "rowCount": 80,
+//         "sampleRows": [],
+//         "warnings": [],
+//         "columns": [
+//           {
+//             "name": "id",
+//             "dataType": "integer",
+//             "isNullable": false,
+//             "isPrimaryKey": true,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 1, "topValues": [], "sampleValues": [] }
+//           },
+//           {
+//             "name": "product_name",
+//             "dataType": "varchar",
+//             "isNullable": false,
+//             "isPrimaryKey": false,
+//             "isForeignKey": false,
+//             "profile": { "nullRatio": 0, "distinctCount": 80, "distinctRatio": 1, "topValues": [], "sampleValues": ["Widget", "Gizmo"] }
+//           }
+//         ]
+//       }
+//     ],
+//     "expectedRelationshipIncludes": ["fact_orders.customer_id->dim_customers.id", "fact_orders.product_id->dim_products.id"]
+//   },
+//   {
+//     "name": "fallback_never_fabricates_rows",
+//     "fallbackOnly": true,
+//     "question": "Show monthly revenue trend",
+//     "expectedStatus": "execution_error",
+//     "expectedRows": 0
+//   }
+// ]

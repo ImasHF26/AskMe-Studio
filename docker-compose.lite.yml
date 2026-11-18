@@ -1,0 +1,137 @@
+# Docker Compose Lite - AskMe Studio
+# Profil Démo ultra-léger (< 1.5 Go RAM totale)
+# Idéal pour PC portables 8 Go RAM sans MongoDB ni microservices secondaires.
+
+x-app-env: &app-env
+  NODE_ENV: ${NODE_ENV:-development}
+  JWT_SECRET: ${JWT_SECRET:-change-me}
+  DATASOURCE_SECRET: ${DATASOURCE_SECRET:-}
+  JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+  POSTGRES_URL: postgresql://askme:askme@postgres:5432/askme
+  REDIS_URL: redis://redis:63179
+  REDIS_HOST: redis
+  REDIS_PORT: 63179
+  CONVERSATION_MEMORY_TTL_SECONDS: 3600
+  GROQ_API_KEY: ${GROQ_API_KEY:-change-me}
+  GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+  GROQ_NARRATIVE_MODEL: ${GROQ_NARRATIVE_MODEL:-openai/gpt-oss-20b}
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-change-me}
+  OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+  OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+  OPENROUTER_HTTP_REFERER: ${OPENROUTER_HTTP_REFERER:-http://localhost:15173}
+  OPENROUTER_APP_TITLE: ${OPENROUTER_APP_TITLE:-AskMe Studio}
+  LLM_NARRATIVE_ENABLED: ${LLM_NARRATIVE_ENABLED:-true}
+  NARRATIVE_TEMPERATURE: ${NARRATIVE_TEMPERATURE:-0.3}
+  NARRATIVE_TOP_P: ${NARRATIVE_TOP_P:-0.9}
+  NARRATIVE_MAX_COMPLETION_TOKENS: ${NARRATIVE_MAX_COMPLETION_TOKENS:-1000}
+  DEFAULT_SEMANTIC_LAYER_LANGUAGE: ${DEFAULT_SEMANTIC_LAYER_LANGUAGE:-en}
+  TEXT_TO_SQL_PROVIDER: ${TEXT_TO_SQL_PROVIDER:-groq}
+  TEXT_TO_SQL_OLLAMA_ENABLED: ${TEXT_TO_SQL_OLLAMA_ENABLED:-true}
+  TEXT_TO_SQL_GROQ_ENABLED: ${TEXT_TO_SQL_GROQ_ENABLED:-true}
+  TEXT_TO_SQL_OPENROUTER_ENABLED: ${TEXT_TO_SQL_OPENROUTER_ENABLED:-true}
+  TEXT_TO_SQL_MODEL: ${TEXT_TO_SQL_MODEL:-}
+  OLLAMA_SQL_MODEL: ${OLLAMA_SQL_MODEL:-qwen2.5-coder:7b}
+  GROQ_SQL_MODEL: ${GROQ_SQL_MODEL:-openai/gpt-oss-20b}
+  OPENROUTER_SQL_MODEL: ${OPENROUTER_SQL_MODEL:-openai/gpt-4o-mini}
+  TEXT_TO_SQL_TIMEOUT_MS: ${TEXT_TO_SQL_TIMEOUT_MS:-15000}
+  SQL_GENERATION_TEMPERATURE: ${SQL_GENERATION_TEMPERATURE:-0}
+  SQL_GENERATION_TOP_P: ${SQL_GENERATION_TOP_P:-0.85}
+  SQL_GENERATION_MAX_COMPLETION_TOKENS: ${SQL_GENERATION_MAX_COMPLETION_TOKENS:-512}
+  SQL_GENERATION_FREQUENCY_PENALTY: ${SQL_GENERATION_FREQUENCY_PENALTY:-0}
+  SQL_GENERATION_PRESENCE_PENALTY: ${SQL_GENERATION_PRESENCE_PENALTY:-0}
+  TEXT_TO_SQL_MAX_TOKENS: ${TEXT_TO_SQL_MAX_TOKENS:-512}
+  TEXT_TO_SQL_TEMPERATURE: ${TEXT_TO_SQL_TEMPERATURE:-0}
+  TEXT_TO_SQL_MAX_CONTEXT_TABLES: ${TEXT_TO_SQL_MAX_CONTEXT_TABLES:-3}
+  TEXT_TO_SQL_MAX_CONTEXT_COLUMNS_PER_TABLE: ${TEXT_TO_SQL_MAX_CONTEXT_COLUMNS_PER_TABLE:-12}
+  TEXT_TO_SQL_MAX_CONTEXT_KPIS: ${TEXT_TO_SQL_MAX_CONTEXT_KPIS:-5}
+  TEXT_TO_SQL_MAX_CONTEXT_SYNONYMS: ${TEXT_TO_SQL_MAX_CONTEXT_SYNONYMS:-6}
+  TEXT_TO_SQL_MAX_CONTEXT_RELATIONSHIPS: ${TEXT_TO_SQL_MAX_CONTEXT_RELATIONSHIPS:-8}
+  TEXT_TO_SQL_MAX_CONTEXT_RETRIEVAL_HINTS: ${TEXT_TO_SQL_MAX_CONTEXT_RETRIEVAL_HINTS:-5}
+  TEXT_TO_SQL_MAX_PROMPT_CONTEXT_CHARS: ${TEXT_TO_SQL_MAX_PROMPT_CONTEXT_CHARS:-10000}
+  SEMANTIC_SEARCH_TOP_K: ${SEMANTIC_SEARCH_TOP_K:-10}
+  SEMANTIC_SEARCH_MMR: ${SEMANTIC_SEARCH_MMR:-0.4}
+  SEMANTIC_SEARCH_SIMILARITY_THRESHOLD: ${SEMANTIC_SEARCH_SIMILARITY_THRESHOLD:-0.1}
+  OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+  QUERY_TIMEOUT_MS: 30000
+  QUERY_MAX_ROWS: 500
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    ports:
+      - "15173:5173"
+    depends_on:
+      - api-gateway
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks:
+      - askme-net
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+    restart: unless-stopped
+    environment: *app-env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - askme-net
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: askme
+      POSTGRES_PASSWORD: askme
+      POSTGRES_DB: askme
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - askme-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: askme_redis_lite
+    restart: unless-stopped
+    ports:
+      - "63179:63179"
+    volumes:
+      - redis_data_lite:/data
+    command: ["redis-server", "--port", "63179", "--appendonly", "yes"]
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    networks:
+      - askme-net
+
+volumes:
+  postgres-data:
+  redis_data_lite:
+  frontend-node-modules:
+
+networks:
+  askme-net:
+    driver: bridge
